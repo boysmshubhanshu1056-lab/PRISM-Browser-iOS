@@ -19,7 +19,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		C10000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		C10000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -54,13 +60,15 @@
 /* Begin PBXNativeTarget section */
 		E10000000000000000000001 /* PRISM */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F10000000000000000000002 /* Build configuration list for PBXNativeTarget "PRISM" */;
+			buildConfigurationList = F10000000000000000000006 /* Target Configuration List */;
 			buildPhases = (
-				C10000000000000000000001 /* Frameworks */,
 				C10000000000000000000002 /* Sources */,
+				C10000000000000000000001 /* Frameworks */,
 			);
-			buildRules = ();
-			dependencies = ();
+			buildRules = (
+			);
+			dependencies = (
+			);
 			name = PRISM;
 			productName = PRISM;
 			productReference = B10000000000000000000004 /* PRISM.app */;
@@ -80,11 +88,14 @@
 					};
 				};
 			};
-			buildConfigurationList = F10000000000000000000001 /* Build configuration list for PBXProject "PRISM" */;
+			buildConfigurationList = F10000000000000000000005 /* Project Configuration List */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
-			knownRegions = (en, Base,);
+			knownRegions = (
+				en,
+				Base,
+			);
 			mainGroup = D10000000000000000000001;
 			productRefGroup = D10000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -154,6 +165,9 @@
 			};
 			name = Release;
 		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
 		F10000000000000000000005 /* Project Configuration List */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -172,7 +186,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-/* End XCBuildConfiguration section */
+/* End XCConfigurationList section */
 	};
 	rootObject = E10000000000000000000002 /* Project object */;
 }
