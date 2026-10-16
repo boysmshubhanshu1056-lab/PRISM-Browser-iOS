@@ -1,18 +1,19 @@
 
-name: PRISM iOS Build
+name: PRISM iPad IPA Build
 
 on:
-  push:
-    branches: [main, master]
-  pull_request:
   workflow_dispatch:
-
-permissions:
-  contents: read
+  push:
+    branches:
+      - main
+    paths:
+      - "PRISM/**"
+      - "PRISM.xcodeproj/**"
+      - ".github/workflows/ios-build.yml"
 
 jobs:
-  build:
-    name: Build PRISM for iOS
+  build-ipa:
+    name: Build PRISM for iPad
     runs-on: macos-15
 
     steps:
@@ -21,55 +22,45 @@ jobs:
 
       - name: Select Xcode
         run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
-          xcodebuild -showsdks
 
-      - name: Find Xcode project
-        id: project
-        shell: bash
+      - name: Build for physical iOS devices
         run: |
-          PROJECT=$(find . -maxdepth 4 \
-            -name "*.xcodeproj" -print -quit)
-          WORKSPACE=$(find . -maxdepth 4 \
-            -name "*.xcworkspace" -print -quit)
+          set -euo pipefail
 
-          if [ -n "$WORKSPACE" ]; then
-            echo "kind=workspace" >> "$GITHUB_OUTPUT"
-            echo "path=$WORKSPACE" >> "$GITHUB_OUTPUT"
-          elif [ -n "$PROJECT" ]; then
-            echo "kind=project" >> "$GITHUB_OUTPUT"
-            echo "path=$PROJECT" >> "$GITHUB_OUTPUT"
-          else
-            echo "No .xcodeproj or .xcworkspace found."
-            echo "Create a proper Xcode project before building."
+          xcodebuild \
+            -project PRISM.xcodeproj \
+            -scheme PRISM \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package unsigned IPA for SideStore
+        run: |
+          set -euo pipefail
+
+          APP_PATH="build/Build/Products/Release-iphoneos/PRISM.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: PRISM.app was not produced."
+            find build -name "*.app" -maxdepth 8
             exit 1
           fi
 
-      - name: Build iOS simulator app
-        shell: bash
-        run: |
-          if [ "${{ steps.project.outputs.kind }}" = "workspace" ]; then
-            xcodebuild \
-              -workspace "${{ steps.project.outputs.path }}" \
-              -scheme PRISM \
-              -sdk iphonesimulator \
-              -configuration Debug \
-              -derivedDataPath build/DerivedData \
-              CODE_SIGNING_ALLOWED=NO build
-          else
-            xcodebuild \
-              -project "${{ steps.project.outputs.path }}" \
-              -scheme PRISM \
-              -sdk iphonesimulator \
-              -configuration Debug \
-              -derivedDataPath build/DerivedData \
-              CODE_SIGNING_ALLOWED=NO build
-          fi
+          mkdir -p ipa/Payload
+          cp -R "$APP_PATH" ipa/Payload/PRISM.app
 
-      - name: Upload simulator app
+          cd ipa
+          /usr/bin/zip -qry ../PRISM-unsigned.ipa Payload
+
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PRISM-iOS-Simulator-App
-          path: build/DerivedData/Build/Products/Debug-iphonesimulator/*.app
+          name: PRISM-iPad-IPA
+          path: PRISM-unsigned.ipa
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
