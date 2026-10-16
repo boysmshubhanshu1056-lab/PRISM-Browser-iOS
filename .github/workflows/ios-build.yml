@@ -1,0 +1,75 @@
+
+name: PRISM iOS Build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build PRISM for iOS
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+
+      - name: Find Xcode project
+        id: project
+        shell: bash
+        run: |
+          PROJECT=$(find . -maxdepth 4 \
+            -name "*.xcodeproj" -print -quit)
+          WORKSPACE=$(find . -maxdepth 4 \
+            -name "*.xcworkspace" -print -quit)
+
+          if [ -n "$WORKSPACE" ]; then
+            echo "kind=workspace" >> "$GITHUB_OUTPUT"
+            echo "path=$WORKSPACE" >> "$GITHUB_OUTPUT"
+          elif [ -n "$PROJECT" ]; then
+            echo "kind=project" >> "$GITHUB_OUTPUT"
+            echo "path=$PROJECT" >> "$GITHUB_OUTPUT"
+          else
+            echo "No .xcodeproj or .xcworkspace found."
+            echo "Create a proper Xcode project before building."
+            exit 1
+          fi
+
+      - name: Build iOS simulator app
+        shell: bash
+        run: |
+          if [ "${{ steps.project.outputs.kind }}" = "workspace" ]; then
+            xcodebuild \
+              -workspace "${{ steps.project.outputs.path }}" \
+              -scheme PRISM \
+              -sdk iphonesimulator \
+              -configuration Debug \
+              -derivedDataPath build/DerivedData \
+              CODE_SIGNING_ALLOWED=NO build
+          else
+            xcodebuild \
+              -project "${{ steps.project.outputs.path }}" \
+              -scheme PRISM \
+              -sdk iphonesimulator \
+              -configuration Debug \
+              -derivedDataPath build/DerivedData \
+              CODE_SIGNING_ALLOWED=NO build
+          fi
+
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: PRISM-iOS-Simulator-App
+          path: build/DerivedData/Build/Products/Debug-iphonesimulator/*.app
+          if-no-files-found: error
+          retention-days: 14
